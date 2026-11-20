@@ -1,0 +1,253 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Translation Tool</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #eef2ff;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px #0002;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4338ca;
+        }
+
+        p {
+            text-align: center;
+            color: #555;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+        }
+
+        .languages {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .languages div {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #4f46e5;
+            color: white;
+            cursor: pointer;
+            font-size: 15px;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background: #3730a3;
+        }
+
+        .translate-btn {
+            width: 100%;
+        }
+
+        .output {
+            margin-top: 25px;
+        }
+
+        #result {
+            min-height: 70px;
+            padding: 15px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        #status {
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        @media(max-width: 500px) {
+            .languages {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Language Translation Tool</h1>
+    <p>Translate your text into different languages easily.</p>
+
+    <label for="inputText">Enter Your Text:</label>
+    <textarea id="inputText"
+        placeholder="Type your text here..."></textarea>
+
+    <div class="languages">
+
+        <div>
+            <label for="sourceLang">Source Language</label>
+            <select id="sourceLang">
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+                <option value="mr">Marathi</option>
+                <option value="fr">French</option>
+                <option value="es">Spanish</option>
+                <option value="de">German</option>
+                <option value="it">Italian</option>
+                <option value="ja">Japanese</option>
+                <option value="zh">Chinese</option>
+                <option value="ar">Arabic</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="targetLang">Target Language</label>
+            <select id="targetLang">
+                <option value="hi">Hindi</option>
+                <option value="en">English</option>
+                <option value="mr">Marathi</option>
+                <option value="fr">French</option>
+                <option value="es">Spanish</option>
+                <option value="de">German</option>
+                <option value="it">Italian</option>
+                <option value="ja">Japanese</option>
+                <option value="zh">Chinese</option>
+                <option value="ar">Arabic</option>
+            </select>
+        </div>
+
+    </div>
+
+    <button class="translate-btn" onclick="translateText()">
+        Translate Text
+    </button>
+
+    <div class="output">
+        <h3>Translated Text:</h3>
+        <div id="result">Your translation will appear here.</div>
+
+        <button onclick="copyText()">Copy Translation</button>
+    </div>
+
+    <div id="status"></div>
+
+</div>
+
+<script>
+
+async function translateText() {
+
+    const text = document.getElementById("inputText").value.trim();
+    const source = document.getElementById("sourceLang").value;
+    const target = document.getElementById("targetLang").value;
+
+    const result = document.getElementById("result");
+    const status = document.getElementById("status");
+
+    if (text === "") {
+        alert("Please enter some text!");
+        return;
+    }
+
+    if (source === target) {
+        alert("Please select two different languages!");
+        return;
+    }
+
+    if (new TextEncoder().encode(text).length > 500) {
+        alert("Please enter text within 500 bytes.");
+        return;
+    }
+
+    result.innerText = "";
+    status.innerText = "Translating... Please wait.";
+
+    try {
+
+        const url =
+        "https://api.mymemory.translated.net/get?q=" +
+        encodeURIComponent(text) +
+        "&langpair=" + source + "|" + target;
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error("Translation service is unavailable.");
+        }
+
+        const data = await response.json();
+
+        if (data.responseStatus !== 200) {
+            throw new Error(data.responseDetails || "Translation failed.");
+        }
+
+        result.innerText = data.responseData.translatedText;
+        status.innerText = "Translation completed successfully!";
+
+    } catch (error) {
+
+        result.innerText = "Unable to translate your text.";
+        status.innerText = error.message;
+
+    }
+}
+
+function copyText() {
+
+    const text = document.getElementById("result").innerText;
+
+    if (!text || text === "Your translation will appear here.") {
+        alert("Nothing to copy!");
+        return;
+    }
+
+    navigator.clipboard.writeText(text)
+        .then(() => alert("Translation copied successfully!"))
+        .catch(() => alert("Unable to copy. Please try again."));
+}
+
+</script>
+
+</body>
+</html>
